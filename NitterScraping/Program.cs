@@ -17,9 +17,11 @@ var waiter = new WebDriverWait(driver: driver, TimeSpan.FromSeconds(10));
 driver.Navigate().GoToUrl("https://nitter.net/settings");
 driver.FindElement(By.CssSelector("label:nth-of-type(1) span")).Click();
 driver.FindElement(By.CssSelector("button.pref-submit")).Click();
-driver.Navigate().GoToUrl("https://nitter.net/search?f=tweets&q=elon+musk");
+driver.Navigate().GoToUrl("https://nitter.net/search?f=tweets&q=elon+twitter+&e-nativeretweets=on&e-media=on&e-videos=on&e-news=on&e-native_video=on&e-replies=on&e-links=on&e-images=on&e-pro_video=on&since=2022-10-27&until=2022-10-29&near=");
 //driver.Manage().Window.Maximize();
 IReadOnlyCollection<IWebElement>? nodes = null;
+var repeatedNodesCheck = 0;
+var previousNodeCount = 0;
 while (true)
 {
     nodes = driver.FindElements(By.CssSelector("div.tweet-body"));
@@ -27,11 +29,19 @@ while (true)
     js.ExecuteScript("window.scrollBy(0, 1000)");
     Thread.Sleep(3000);
     var count = nodes.Count;
-    if (count > 1000)
+    
+    if (previousNodeCount == count)
     {
-        break;
+        repeatedNodesCheck++;
     }
-    Console.WriteLine(count);
+    else
+    {
+        repeatedNodesCheck = 0;
+    }
+    
+    if (count > 2000 || repeatedNodesCheck > 5) { break; }
+    Console.WriteLine($"{count} --> repeated by:{repeatedNodesCheck} times.");
+    previousNodeCount = count;
 }
 
 var tweets = new List<Tweet>(nodes.Count);
@@ -53,7 +63,7 @@ foreach (var node in nodes)
     Console.WriteLine($"{username}\n{content}\n{date}\n\n");
 }
 
-using var writer = new StreamWriter("D:\\output.csv");
+using var writer = new StreamWriter("D:\\tweets_elon buys twitter.csv");
 using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 // populating the CSV file
 csv.WriteRecords(tweets);
