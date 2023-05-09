@@ -11,7 +11,7 @@ using OpenQA.Selenium.Support.UI;
 Console.WriteLine("Hello, World!");
 var driverOptions = new EdgeOptions();
 driverOptions.AddArguments("headless");
-var driver = new EdgeDriver();
+var driver = new EdgeDriver(driverOptions);
 var waiter = new WebDriverWait(driver: driver, TimeSpan.FromSeconds(10));
 
 driver.Navigate().GoToUrl("https://nitter.net/settings");
@@ -27,17 +27,21 @@ while (true)
     js.ExecuteScript("window.scrollBy(0, 1000)");
     Thread.Sleep(3000);
     var count = nodes.Count;
-    if (count > 1)
+    if (count > 1000)
     {
         break;
     }
+    Console.WriteLine(count);
 }
 
 var tweets = new List<Tweet>(nodes.Count);
 foreach (var node in nodes)
 {
     var username = node.FindElement(By.CssSelector("div.tweet-header")).
-        FindElement(By.CssSelector("a.tweet-avatar")).GetAttribute("href");
+        FindElement(By.CssSelector("div.tweet-name-row")).
+        FindElement(By.CssSelector("div.fullname-and-username")).
+        FindElement(By.CssSelector("a.username")).
+        GetAttribute("title");;
     var content = node.FindElement(By.CssSelector("div.tweet-content.media-body")).Text;
     var date = node.
         FindElement(By.CssSelector("div.tweet-header")).
